@@ -1,0 +1,108 @@
+conf:
+  listen:
+    host: 0.0.0.0
+    port: 9000
+  
+  allow_list:
+    - 0.0.0.0/0
+  
+  etcd:
+    endpoints:
+      - etcd1:2379
+      - etcd2:2379
+      - etcd3:2379
+    prefix: /apisix
+    mtls:
+      key_file: ""
+      cert_file: ""
+      ca_file: ""
+  
+  log:
+    error_log:
+      level: warn
+      file_path: /usr/local/apisix-dashboard/logs/error.log
+    access_log:
+      file_path: /usr/local/apisix-dashboard/logs/access.log
+
+authentication:
+  secret: secret
+  expire_time: 3600
+  users:
+    - username: admin
+      password: admin
+    - username: user
+      password: user
+
+plugins:
+  - api-breaker
+  - authz-casbin
+  - authz-casdoor
+  - authz-keycloak
+  - basic-auth
+  - batch-requests
+  - client-control
+  - clickhouse-logger
+  - consumer-restriction
+  - cors
+  - csrf
+  - datadog
+  - degraphql
+  - echo
+  - error-log-logger
+  - example-plugin
+  - ext-plugin-post-req
+  - ext-plugin-pre-req
+  - fault-injection
+  - file-logger
+  - forward-auth
+  - google-cloud-logging
+  - grpc-transcode
+  - grpc-web
+  - gzip
+  - hmac-auth
+  - http-logger
+  - inspect
+  - ip-restriction
+  - jwt-auth
+  - kafka-logger
+  - kafka-proxy
+  - key-auth
+  - ldap-auth
+  - limit-conn
+  - limit-count
+  - limit-req
+  - loggly
+  - mocking
+  - mqtt-proxy
+  - opa
+  - openid-connect
+  - opentelemetry
+  - prometheus
+  - proxy-cache
+  - proxy-control
+  - proxy-mirror
+  - proxy-rewrite
+  - public-api
+  - real-ip
+  - redirect
+  - referer-restriction
+  - request-id
+  - request-validation
+  - response-rewrite
+  - rocketmq-logger
+  - server-info
+  - serverless-post-function
+  - serverless-pre-function
+  - skywalking
+  - skywalking-logger
+  - sls-logger
+  - splunk-hec-logging
+  - syslog
+  - tcp-logger
+  - traffic-split
+  - ua-restriction
+  - udp-logger
+  - uri-blocker
+  - wolf-rbac
+  - workflow
+  - zipkin

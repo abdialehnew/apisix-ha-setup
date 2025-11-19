@@ -1,0 +1,28 @@
+# Environment variables
+.env
+
+# Data directories
+data/etcd1/
+data/etcd2/
+data/etcd3/
+logs/apisix1/
+logs/apisix2/
+logs/apisix3/
+logs/haproxy/
+
+# Temporary files
+*.log
+*.tmp
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.backup
+*.bak
+backup-*.tar.gz
+*-backup-*.tar.gz
