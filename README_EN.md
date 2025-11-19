@@ -1,16 +1,16 @@
 # Apache APISIX High Availability Setup
 
-**[English](README_EN.md)** | **Bahasa Indonesia**
+**English** | **[Bahasa Indonesia](README.md)**
 
-Setup Docker Compose untuk Apache APISIX dengan konfigurasi High Availability (HA).
+Docker Compose setup for Apache APISIX with High Availability (HA) configuration.
 
-## Arsitektur
+## Architecture
 
-Setup ini mencakup:
-- **3 Node APISIX** - untuk load balancing dan high availability
-- **3 Node ETCD** - cluster untuk menyimpan konfigurasi
-- **1 APISIX Dashboard** - untuk manajemen via UI
-- **1 HAProxy** - load balancer untuk mendistribusikan traffic ke APISIX nodes
+This setup includes:
+- **3 APISIX Nodes** - for load balancing and high availability
+- **3 ETCD Nodes** - cluster for configuration storage
+- **1 APISIX Dashboard** - for UI-based management
+- **1 HAProxy** - load balancer to distribute traffic across APISIX nodes
 
 ## 🚀 Roadmap & Future Enhancements
 
@@ -22,40 +22,40 @@ Setup ini mencakup:
   - Custom dashboards for API Gateway analytics
   - Alert rules for critical events
 
-## Struktur Direktori
+## Directory Structure
 
 ```
 apisix/
 ├── docker-compose.yml
 ├── config/
 │   ├── apisix_conf/
-│   │   └── config.yaml          # Konfigurasi APISIX
+│   │   └── config.yaml          # APISIX configuration
 │   ├── dashboard_conf/
-│   │   └── conf.yaml             # Konfigurasi Dashboard
+│   │   └── conf.yaml             # Dashboard configuration
 │   └── haproxy/
-│       └── haproxy.cfg           # Konfigurasi HAProxy
+│       └── haproxy.cfg           # HAProxy configuration
 ├── data/
-│   ├── etcd1/                    # Data ETCD node 1
-│   ├── etcd2/                    # Data ETCD node 2
-│   └── etcd3/                    # Data ETCD node 3
+│   ├── etcd1/                    # ETCD node 1 data
+│   ├── etcd2/                    # ETCD node 2 data
+│   └── etcd3/                    # ETCD node 3 data
 ├── logs/
-│   ├── apisix1/                  # Logs APISIX node 1
-│   ├── apisix2/                  # Logs APISIX node 2
-│   ├── apisix3/                  # Logs APISIX node 3
-│   ├── dashboard/                # Logs Dashboard
-│   └── haproxy/                  # Logs HAProxy
+│   ├── apisix1/                  # APISIX node 1 logs
+│   ├── apisix2/                  # APISIX node 2 logs
+│   ├── apisix3/                  # APISIX node 3 logs
+│   ├── dashboard/                # Dashboard logs
+│   └── haproxy/                  # HAProxy logs
 └── .env                          # Environment variables
 ```
 
-## Ports yang Digunakan
+## Port Mappings
 
-### Akses Publik (melalui HAProxy)
-- **8070** - HTTP traffic (load balanced ke 3 APISIX nodes)
-- **7443** - HTTPS traffic (load balanced ke 3 APISIX nodes)
+### Public Access (via HAProxy)
+- **8070** - HTTP traffic (load balanced to 3 APISIX nodes)
+- **7443** - HTTPS traffic (load balanced to 3 APISIX nodes)
 - **9000** - APISIX Dashboard
 - **8404** - HAProxy Statistics
 
-### Akses Direct ke APISIX Nodes (opsional)
+### Direct Access to APISIX Nodes (optional)
 - **9180** - APISIX Node 1 HTTP
 - **9543** - APISIX Node 1 HTTPS
 - **9181** - APISIX Node 2 HTTP
@@ -63,52 +63,52 @@ apisix/
 - **9182** - APISIX Node 3 HTTP
 - **9545** - APISIX Node 3 HTTPS
 
-## Cara Menggunakan
+## Getting Started
 
-### 1. Persiapan Awal
+### 1. Initial Setup
 
-Buat direktori yang diperlukan:
+Create required directories:
 ```bash
 # mkdir -p config/apisix_conf config/dashboard_conf config/haproxy
 mkdir -p data/etcd1 data/etcd2 data/etcd3
 mkdir -p logs/apisix1 logs/apisix2 logs/apisix3 logs/dashboard logs/haproxy
 ```
 
-### 2. Konfigurasi Environment Variables
+### 2. Configure Environment Variables
 
-Copy file `.env.example` ke `.env` dan sesuaikan:
+Copy `.env.example` to `.env` and customize:
 ```bash
 cp .env.example .env
 ```
 
-**PENTING**: Ganti admin key dan password di production!
+**IMPORTANT**: Change admin keys and passwords in production!
 
 ### 3. Start Services
 
-Jalankan semua services:
+Launch all services:
 ```bash
 docker-compose up -d
 ```
 
-Cek status services:
+Check service status:
 ```bash
 docker-compose ps
 ```
 
-Lihat logs:
+View logs:
 ```bash
-# Semua services
+# All services
 docker-compose logs -f
 
-# Service tertentu
+# Specific service
 docker-compose logs -f apisix1
 docker-compose logs -f etcd1
 docker-compose logs -f haproxy
 ```
 
-### 4. Akses Dashboard
+### 4. Access Dashboard
 
-Buka browser dan akses:
+Open your browser and navigate to:
 ```
 http://localhost:9000
 ```
@@ -119,18 +119,18 @@ Default credentials:
 
 ### 5. Testing
 
-Test koneksi ke APISIX:
+Test APISIX connection:
 ```bash
 # Via load balancer
 curl http://localhost:8070/
 
-# Direct ke node tertentu
+# Direct to specific node
 curl http://localhost:9180/
 curl http://localhost:9181/
 curl http://localhost:9182/
 ```
 
-Response yang diharapkan (tanpa route yang dikonfigurasi):
+Expected response (with no configured routes):
 ```json
 {"error_msg":"404 Route Not Found"}
 ```
@@ -141,41 +141,41 @@ docker exec apisix-etcd1 etcdctl endpoint health --cluster
 docker exec apisix-etcd1 etcdctl member list
 ```
 
-Akses HAProxy stats:
+Access HAProxy stats:
 ```
 http://localhost:8404/stats
 ```
 
-Verifikasi semua backend UP di HAProxy:
+Verify all backends are UP in HAProxy:
 ```bash
 curl -s "http://localhost:8404/stats;csv" | grep "apisix_http_backend,apisix" | cut -d',' -f1,2,18
 ```
 
-Output yang diharapkan:
+Expected output:
 ```
 apisix_http_backend,apisix1,UP
 apisix_http_backend,apisix2,UP
 apisix_http_backend,apisix3,UP
 ```
 
-## Konfigurasi
+## Configuration
 
 ### APISIX Configuration (`config/apisix_conf/config.yaml`)
 
-File ini berisi konfigurasi utama APISIX:
+This file contains the main APISIX configuration:
 - Node listen ports
 - ETCD connection settings
 - Plugin configuration
 - Nginx configuration
 - Admin API settings
 
-Untuk memodifikasi:
-1. Edit file `config/apisix_conf/config.yaml`
+To modify:
+1. Edit `config/apisix_conf/config.yaml`
 2. Restart APISIX nodes: `docker-compose restart apisix1 apisix2 apisix3`
 
 ### Dashboard Configuration (`config/dashboard_conf/conf.yaml`)
 
-Konfigurasi APISIX Dashboard:
+APISIX Dashboard configuration:
 - Listen port
 - ETCD endpoints
 - Authentication settings
@@ -183,14 +183,14 @@ Konfigurasi APISIX Dashboard:
 
 ### HAProxy Configuration (`config/haproxy/haproxy.cfg`)
 
-Konfigurasi load balancer:
+Load balancer configuration:
 - Frontend/backend settings
 - Health check configuration
 - Load balancing algorithm (roundrobin)
 
 ## Admin API
 
-APISIX Admin API dapat diakses di:
+APISIX Admin API can be accessed at:
 - Node 1: `http://localhost:9180/apisix/admin`
 - Node 2: `http://localhost:9181/apisix/admin`
 - Node 3: `http://localhost:9182/apisix/admin`
@@ -203,18 +203,18 @@ curl "http://127.0.0.1:9180/apisix/admin/routes" \
 
 ## Monitoring & Healthcheck
 
-Semua services memiliki healthcheck:
+All services have healthchecks:
 - **ETCD**: `etcdctl endpoint health`
-- **APISIX**: HTTP request menggunakan `/dev/tcp` dengan bash
-- **Dashboard**: HTTP request ke port 9000
+- **APISIX**: HTTP request using `/dev/tcp` with bash
+- **Dashboard**: HTTP request to port 9000
 - **HAProxy**: config validation
 
-Cek status healthcheck semua services:
+Check healthcheck status of all services:
 ```bash
 docker-compose ps
 ```
 
-Output yang diharapkan (semua healthy):
+Expected output (all healthy):
 ```
 NAME               STATUS
 apisix-dashboard   Up X minutes (healthy)
@@ -229,14 +229,14 @@ apisix-node3       Up X minutes (healthy)
 
 ## Scaling
 
-Untuk menambah APISIX node:
+To add an APISIX node:
 
-1. Edit `docker-compose.yml`, tambahkan node baru:
+1. Edit `docker-compose.yml`, add a new node:
 ```yaml
 apisix4:
   image: apache/apisix:latest
   container_name: apisix-node4
-  # ... (sama seperti apisix1-3)
+  # ... (same as apisix1-3)
 ```
 
 2. Update `config/haproxy/haproxy.cfg`:
@@ -262,92 +262,92 @@ docker exec apisix-etcd1 etcdctl snapshot save /etcd-data/backup.db
 tar -czf logs-backup-$(date +%Y%m%d).tar.gz logs/
 ```
 
-### Backup Konfigurasi
+### Backup Configuration
 ```bash
 tar -czf config-backup-$(date +%Y%m%d).tar.gz config/
 ```
 
 ## Troubleshooting
 
-### APISIX tidak bisa connect ke ETCD
+### APISIX cannot connect to ETCD
 ```bash
-# Cek ETCD health
+# Check ETCD health
 docker exec apisix-etcd1 etcdctl endpoint health --cluster
 
-# Cek ETCD logs
+# Check ETCD logs
 docker-compose logs etcd1 etcd2 etcd3
 
-# Cek konfigurasi ETCD endpoints di APISIX
+# Check ETCD endpoints configuration in APISIX
 docker exec apisix-node1 cat /usr/local/apisix/conf/config.yaml | grep -A 5 etcd
 ```
 
-### HAProxy menunjukkan APISIX node DOWN
+### HAProxy shows APISIX node DOWN
 ```bash
-# Cek apakah APISIX benar-benar berjalan
+# Check if APISIX is actually running
 docker-compose ps
 
-# Test koneksi dari container lain
+# Test connection from another container
 docker exec apisix-dashboard curl -s http://apisix2:9080/
 
-# Restart HAProxy untuk refresh backend connections
+# Restart HAProxy to refresh backend connections
 docker-compose restart haproxy
 
-# Verifikasi backend status
+# Verify backend status
 curl -s "http://localhost:8404/stats;csv" | grep "apisix_http_backend,apisix"
 ```
 
-**Catatan**: Jika APISIX node di-recreate, HAProxy mungkin masih memiliki koneksi lama. 
-Solusinya: `docker-compose restart haproxy`
+**Note**: If APISIX nodes are recreated, HAProxy may still have stale connections.
+Solution: `docker-compose restart haproxy`
 
-### APISIX node stuck di "init_etcd"
+### APISIX node stuck at "init_etcd"
 ```bash
-# Cek logs
+# Check logs
 docker-compose logs apisix2
 
-# Restart container yang bermasalah
+# Restart problematic container
 docker-compose restart apisix2
 
-# Jika masih bermasalah, recreate
+# If still problematic, recreate
 docker-compose up -d --force-recreate apisix2
 ```
 
-### Healthcheck menunjukkan "unhealthy"
+### Healthcheck shows "unhealthy"
 ```bash
-# Cek detail healthcheck logs
+# Check detailed healthcheck logs
 docker inspect apisix-node1 | jq '.[0].State.Health'
 
-# Test healthcheck command secara manual
+# Test healthcheck command manually
 docker exec apisix-node1 bash -c "exec 3<>/dev/tcp/127.0.0.1/9080 && echo -e 'GET / HTTP/1.1\r\nHost: localhost\r\n\r\n' >&3 && cat <&3"
 ```
 
 ### Performance Issues
 ```bash
-# Lihat resource usage
+# View resource usage
 docker stats
 
-# Increase worker processes di config.yaml
+# Increase worker processes in config.yaml
 nginx_config:
-  worker_processes: auto  # atau angka spesifik
+  worker_processes: auto  # or specific number
 ```
 
 ## Security
 
-**PENTING untuk Production:**
+**IMPORTANT for Production:**
 
-1. **Ganti Admin Keys**:
+1. **Change Admin Keys**:
    - Edit `config/apisix_conf/config.yaml`
-   - Ganti semua admin keys dengan nilai random yang kuat
+   - Replace all admin keys with strong random values
 
-2. **Ganti Dashboard Password**:
+2. **Change Dashboard Password**:
    - Edit `config/dashboard_conf/conf.yaml`
-   - Ganti username/password
+   - Change username/password
 
 3. **Restrict Admin Access**:
-   - Edit `allow_admin` di `config.yaml`
-   - Batasi ke IP tertentu
+   - Edit `allow_admin` in `config.yaml`
+   - Limit to specific IPs
 
 4. **Enable HTTPS**:
-   - Konfigurasi SSL certificates
+   - Configure SSL certificates
    - Set `https_admin: true`
 
 5. **ETCD Security**:
@@ -358,19 +358,31 @@ nginx_config:
 ## Stop Services
 
 ```bash
-# Stop semua
+# Stop all
 docker-compose down
 
-# Stop dan hapus volumes
+# Stop and remove volumes
 docker-compose down -v
 
-# Stop tanpa remove containers
+# Stop without removing containers
 docker-compose stop
 ```
 
-## Referensi
+## References
 
 - [APISIX Documentation](https://apisix.apache.org/docs/)
 - [APISIX Dashboard](https://github.com/apache/apisix-dashboard)
 - [HAProxy Documentation](http://www.haproxy.org/)
 - [ETCD Documentation](https://etcd.io/docs/)
+
+## License
+
+This project is open source and available under the [Apache License 2.0](LICENSE).
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## Support
+
+For issues, questions, or contributions, please open an issue on GitHub.
