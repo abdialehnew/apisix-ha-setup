@@ -67,7 +67,7 @@ apisix/
 
 Buat direktori yang diperlukan:
 ```bash
-mkdir -p config/apisix_conf config/dashboard_conf config/haproxy
+# mkdir -p config/apisix_conf config/dashboard_conf config/haproxy
 mkdir -p data/etcd1 data/etcd2 data/etcd3
 mkdir -p logs/apisix1 logs/apisix2 logs/apisix3 logs/dashboard logs/haproxy
 ```
