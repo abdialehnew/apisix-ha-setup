@@ -95,10 +95,13 @@ services:
     networks:
       - apisix-network
     ports:
-      - "9180:9080"
+      - "9180:9080"    # Data plane
+      - "9280:9180"    # Admin API
       - "9543:9443"
     environment:
       - APISIX_STAND_ALONE=false
+      - APISIX_ADMIN_KEY=${APISIX_ADMIN_KEY}
+      - APISIX_VIEWER_KEY=${APISIX_VIEWER_KEY}
     entrypoint: ["/custom-entrypoint.sh"]
     command: ["docker-start"]
     volumes:
@@ -122,10 +125,13 @@ services:
     networks:
       - apisix-network
     ports:
-      - "9181:9080"
+      - "9181:9080"    # Data plane
+      - "9281:9180"    # Admin API
       - "9544:9443"
     environment:
       - APISIX_STAND_ALONE=false
+      - APISIX_ADMIN_KEY=${APISIX_ADMIN_KEY}
+      - APISIX_VIEWER_KEY=${APISIX_VIEWER_KEY}
     entrypoint: ["/custom-entrypoint.sh"]
     command: ["docker-start"]
     volumes:
@@ -149,10 +155,13 @@ services:
     networks:
       - apisix-network
     ports:
-      - "9182:9080"
+      - "9182:9080"    # Data plane
+      - "9282:9180"    # Admin API
       - "9545:9443"
     environment:
       - APISIX_STAND_ALONE=false
+      - APISIX_ADMIN_KEY=${APISIX_ADMIN_KEY}
+      - APISIX_VIEWER_KEY=${APISIX_VIEWER_KEY}
     entrypoint: ["/custom-entrypoint.sh"]
     command: ["docker-start"]
     volumes:
