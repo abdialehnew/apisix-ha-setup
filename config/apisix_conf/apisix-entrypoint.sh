@@ -17,12 +17,13 @@ sleep 1
 ADMIN_KEY="${APISIX_ADMIN_KEY:-edd1c9f034335f136f87ad84b625c8f1}"
 VIEWER_KEY="${APISIX_VIEWER_KEY:-4054f7cf07e344346cd3f287985e76a2}"
 
-# Update config.yaml with ETCD endpoints
+# Generate config.yaml with ETCD and Prometheus configuration
 cat > /usr/local/apisix/conf/config.yaml <<EOF
 deployment:
   role: traditional
   role_traditional:
     config_provider: etcd
+  
   etcd:
     host:
       - "http://etcd1:2379"
@@ -30,6 +31,7 @@ deployment:
       - "http://etcd3:2379"
     prefix: /apisix
     timeout: 30
+  
   admin:
     admin_key:
       - name: admin
@@ -43,13 +45,21 @@ deployment:
       port: 9180
     https_admin: false
     admin_api_version: v3
-    allow_admin:
-      - 0.0.0.0/0
 
 apisix:
   node_listen: 9080
   enable_admin: true
   enable_admin_cors: true
+  enable_dev_mode: false
+
+plugin_attr:
+  prometheus:
+    export_addr:
+      ip: 0.0.0.0
+      port: 9091
+    export_uri: /apisix/prometheus/metrics
+    metric_prefix: apisix_
+    enable_export_server: true
 EOF
 
 # Run APISIX

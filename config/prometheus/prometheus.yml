@@ -1,0 +1,50 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'apisix-cluster'
+    environment: 'production'
+
+# Load alert rules
+rule_files:
+  - /etc/prometheus/alert_rules.yml
+
+scrape_configs:
+  # APISIX Nodes Metrics (scraping internal container port 9091)
+  - job_name: 'apisix'
+    metrics_path: '/apisix/prometheus/metrics'
+    static_configs:
+      - targets:
+        - 'apisix-node1:9091'
+        - 'apisix-node2:9091'
+        - 'apisix-node3:9091'
+        labels:
+          cluster: 'apisix'
+          service: 'api-gateway'
+          
+  # HAProxy Stats (requires prometheus exporter or stats page scraping)
+  - job_name: 'haproxy'
+    static_configs:
+      - targets:
+        - 'apisix-haproxy:8404'
+        labels:
+          service: 'load-balancer'
+          
+  # ETCD Cluster Metrics
+  - job_name: 'etcd'
+    static_configs:
+      - targets:
+        - 'apisix-etcd1:2379'
+        - 'apisix-etcd2:2379'
+        - 'apisix-etcd3:2379'
+        labels:
+          service: 'etcd'
+          cluster: 'config-store'
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets:
+        - 'localhost:9090'
+        labels:
+          service: 'prometheus'

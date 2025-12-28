@@ -11,16 +11,45 @@ Setup ini mencakup:
 - **3 Node ETCD** - cluster untuk menyimpan konfigurasi
 - **1 APISIX Dashboard** - untuk manajemen via UI
 - **1 HAProxy** - load balancer untuk mendistribusikan traffic ke APISIX nodes
+- **Grafana Stack** - monitoring dan visualization
+  - **Grafana Loki** - log aggregation
+  - **Prometheus** - metrics collection
+  - **Grafana** - visualization dashboard
+
+## ✨ Features
+
+- ✅ **High Availability** - 3 APISIX nodes dengan load balancing
+- ✅ **Distributed Configuration** - ETCD cluster 3 nodes
+- ✅ **Admin API Audit Logging** - Native APISIX audit logs untuk tracking semua perubahan
+- ✅ **Monitoring & Metrics** - Prometheus + Grafana untuk real-time monitoring
+- ✅ **Log Aggregation** - Loki untuk centralized logging
+- ✅ **Alert Rules** - Automated alerts untuk performance issues
+- ✅ **Grafana Embedding** - Dashboard dapat di-embed di APISIX Dashboard
+- ✅ **HAProxy Stats** - Built-in Prometheus exporter
 
 ## 🚀 Roadmap & Future Enhancements
 
-**Coming Soon:**
-- [ ] **Prometheus & Grafana** - Advanced monitoring and metrics visualization
-  - APISIX metrics collection
+**✅ Implemented:**
+- [x] **Prometheus & Grafana** - Advanced monitoring and metrics visualization
+  - APISIX metrics collection (port 9091-9093)
   - ETCD cluster monitoring
-  - HAProxy performance metrics
+  - HAProxy performance metrics with Prometheus exporter
   - Custom dashboards for API Gateway analytics
-  - Alert rules for critical events
+  - Alert rules for critical events (latency, errors, node health)
+  - See [Grafana Logging Documentation](docs/GRAFANA_LOGGING.md)
+  
+- [x] **Audit Logging & Configuration Tracking** - Comprehensive logging system
+  - Native Admin API audit logging
+  - Request/response audit trail
+  - Configuration change tracking
+  - Multiple logger options (File, HTTP, Syslog, Kafka, Elasticsearch)
+  - Request ID for distributed tracing
+  - See [Audit Logging Documentation](docs/AUDIT_LOGGING.md)
+
+- [x] **Grafana Embedding** - Dashboard integration
+  - CSP headers configured for iframe embedding
+  - Anonymous access enabled untuk embedded panels
+  - See [Grafana Embedding Guide](docs/GRAFANA_EMBEDDING.md)
 
 ## Struktur Direktori
 
@@ -29,22 +58,40 @@ apisix/
 ├── docker-compose.yml
 ├── config/
 │   ├── apisix_conf/
-│   │   └── config.yaml          # Konfigurasi APISIX
+│   │   ├── config.yaml              # Konfigurasi APISIX
+│   │   └── apisix-entrypoint.sh     # Custom entrypoint
 │   ├── dashboard_conf/
-│   │   └── conf.yaml             # Konfigurasi Dashboard
-│   └── haproxy/
-│       └── haproxy.cfg           # Konfigurasi HAProxy
-├── data/
-│   ├── etcd1/                    # Data ETCD node 1
-│   ├── etcd2/                    # Data ETCD node 2
-│   └── etcd3/                    # Data ETCD node 3
-├── logs/
-│   ├── apisix1/                  # Logs APISIX node 1
-│   ├── apisix2/                  # Logs APISIX node 2
-│   ├── apisix3/                  # Logs APISIX node 3
-│   ├── dashboard/                # Logs Dashboard
-│   └── haproxy/                  # Logs HAProxy
-└── .env                          # Environment variables
+│   │   └── conf.yaml                # Konfigurasi Dashboard
+│   ├── haproxy/
+│   │   └── haproxy.cfg              # Konfigurasi HAProxy
+│   ├── grafana/
+│   │   ├── grafana.ini              # Grafana config
+│   │   └── provisioning/            # Auto-provisioning
+│   │       ├── datasources/         # Loki & Prometheus
+│   │       └── dashboards/          # Dashboard definitions
+│   ├── loki/
+│   │   └── loki-config.yaml         # Loki configuration
+│   └── prometheus/
+│       ├── prometheus.yml           # Prometheus config
+│       └── alert_rules.yml          # Alert rules
+├── data/                            # (gitignored)
+│   ├── etcd1/                       # Data ETCD node 1
+│   ├── etcd2/                       # Data ETCD node 2
+│   ├── etcd3/                       # Data ETCD node 3
+│   ├── grafana/                     # Grafana data
+│   ├── loki/                        # Loki data
+│   └── prometheus/                  # Prometheus data
+├── logs/                            # (gitignored)
+│   ├── apisix1/                     # Logs APISIX node 1
+│   ├── apisix2/                     # Logs APISIX node 2
+│   ├── apisix3/                     # Logs APISIX node 3
+│   ├── dashboard/                   # Logs Dashboard
+│   └── haproxy/                     # Logs HAProxy
+├── docs/
+│   ├── AUDIT_LOGGING.md             # Audit logging guide
+│   ├── GRAFANA_LOGGING.md           # Grafana integration
+│   └── GRAFANA_EMBEDDING.md         # Embedding guide
+└── .env                             # Environment variables
 ```
 
 ## Ports yang Digunakan
@@ -52,15 +99,28 @@ apisix/
 ### Akses Publik (melalui HAProxy)
 - **8070** - HTTP traffic (load balanced ke 3 APISIX nodes)
 - **7443** - HTTPS traffic (load balanced ke 3 APISIX nodes)
+- **8404** - HAProxy Statistics & Prometheus metrics
+
+### Dashboard & Monitoring
 - **9000** - APISIX Dashboard
-- **8404** - HAProxy Statistics
+- **3000** - Grafana Dashboard
+- **9090** - Prometheus UI
+- **3100** - Loki API
+
+### APISIX Metrics
+- **9091** - APISIX Node 1 Prometheus metrics
+- **9092** - APISIX Node 2 Prometheus metrics
+- **9093** - APISIX Node 3 Prometheus metrics
 
 ### Akses Direct ke APISIX Nodes (opsional)
 - **9180** - APISIX Node 1 HTTP
+- **9280** - APISIX Node 1 Admin API
 - **9543** - APISIX Node 1 HTTPS
 - **9181** - APISIX Node 2 HTTP
+- **9281** - APISIX Node 2 Admin API
 - **9544** - APISIX Node 2 HTTPS
 - **9182** - APISIX Node 3 HTTP
+- **9282** - APISIX Node 3 Admin API
 - **9545** - APISIX Node 3 HTTPS
 
 ## Cara Menggunakan
@@ -69,9 +129,17 @@ apisix/
 
 Buat direktori yang diperlukan:
 ```bash
-# mkdir -p config/apisix_conf config/dashboard_conf config/haproxy
-mkdir -p data/etcd1 data/etcd2 data/etcd3
-mkdir -p logs/apisix1 logs/apisix2 logs/apisix3 logs/dashboard logs/haproxy
+# Config directories
+mkdir -p config/{apisix_conf,dashboard_conf,haproxy,grafana/provisioning/{datasources,dashboards/json},loki,prometheus}
+
+# Data directories (akan di-gitignore)
+mkdir -p data/{etcd1,etcd2,etcd3,grafana,loki,prometheus}
+
+# Log directories (akan di-gitignore)
+mkdir -p logs/{apisix1,apisix2,apisix3,dashboard,haproxy}
+
+# Set permissions
+chmod -R 777 data/
 ```
 
 ### 2. Konfigurasi Environment Variables
@@ -117,7 +185,41 @@ Default credentials:
 - Username: `admin`
 - Password: `admin`
 
-### 5. Testing
+### 5. Akses Monitoring & Dashboard
+
+**APISIX Dashboard:**
+```
+http://localhost:9000
+```
+Default credentials: `admin` / `admin`
+
+**Grafana Dashboard:**
+```
+http://localhost:3000
+```
+Default credentials: `admin` / `admin`
+
+Dashboards available:
+- APISIX Simple Dashboard - Real-time API gateway metrics
+- APISIX Official Dashboard (ID: 17957)
+
+**Prometheus UI:**
+```
+http://localhost:9090
+```
+- Metrics explorer
+- Alert rules
+- Target status
+
+**HAProxy Stats:**
+```
+http://localhost:8404/stats
+```
+- Backend health
+- Connection stats
+- Traffic metrics
+
+### 6. Testing
 
 Test koneksi ke APISIX:
 ```bash
@@ -128,6 +230,9 @@ curl http://localhost:8070/
 curl http://localhost:9180/
 curl http://localhost:9181/
 curl http://localhost:9182/
+
+# Check Prometheus metrics
+curl http://localhost:9091/apisix/prometheus/metrics | head -20
 ```
 
 Response yang diharapkan (tanpa route yang dikonfigurasi):
@@ -141,22 +246,16 @@ docker exec apisix-etcd1 etcdctl endpoint health --cluster
 docker exec apisix-etcd1 etcdctl member list
 ```
 
-Akses HAProxy stats:
-```
-http://localhost:8404/stats
-```
-
-Verifikasi semua backend UP di HAProxy:
+Verify Prometheus targets:
 ```bash
-curl -s "http://localhost:8404/stats;csv" | grep "apisix_http_backend,apisix" | cut -d',' -f1,2,18
+curl -s http://localhost:9090/api/v1/targets | jq '.data.activeTargets[] | {job: .labels.job, instance: .labels.instance, health: .health}'
 ```
 
-Output yang diharapkan:
-```
-apisix_http_backend,apisix1,UP
-apisix_http_backend,apisix2,UP
-apisix_http_backend,apisix3,UP
-```
+Semua targets harus status `"health": "up"`:
+- apisix (3 nodes)
+- etcd (3 nodes)
+- haproxy (1 node)
+- prometheus (1 node)
 
 ## Konfigurasi
 
@@ -180,6 +279,7 @@ Konfigurasi APISIX Dashboard:
 - ETCD endpoints
 - Authentication settings
 - Enabled plugins
+- CSP policy untuk Grafana embedding
 
 ### HAProxy Configuration (`config/haproxy/haproxy.cfg`)
 
@@ -187,19 +287,65 @@ Konfigurasi load balancer:
 - Frontend/backend settings
 - Health check configuration
 - Load balancing algorithm (roundrobin)
+- Prometheus metrics exporter di `/metrics`
+
+### Monitoring Stack
+
+**Prometheus** (`config/prometheus/prometheus.yml`):
+- Scrape configs untuk APISIX, ETCD, HAProxy
+- Metrics retention: 15 days
+- Scrape interval: 15s
+
+**Alert Rules** (`config/prometheus/alert_rules.yml`):
+- HighLatency: p95 > 2s
+- SlowResponseTime: p50 > 2s per route
+- VerySlowRequests: p99 > 2s
+- HighErrorRate: 5xx > 10/sec
+- NodeDown alerts
+
+**Grafana** (`config/grafana/grafana.ini`):
+- Anonymous access enabled
+- CSP disabled untuk iframe embedding
+- Auto-provisioned datasources (Loki + Prometheus)
+
+**Loki** (`config/loki/loki-config.yaml`):
+- Log retention: 30 days
+- Storage: filesystem
 
 ## Admin API
 
-APISIX Admin API dapat diakses di:
-- Node 1: `http://localhost:9180/apisix/admin`
-- Node 2: `http://localhost:9181/apisix/admin`
-- Node 3: `http://localhost:9182/apisix/admin`
+APISIX Admin API dapat diakses melalui docker exec atau dari host (jika port di-expose):
 
-Example request:
+**Via Docker Exec (Recommended):**
 ```bash
-curl "http://127.0.0.1:9180/apisix/admin/routes" \
+# List all routes
+docker exec apisix-node1 curl -s http://127.0.0.1:9180/apisix/admin/routes \
+  -H "X-API-KEY: edd1c9f034335f136f87ad84b625c8f1"
+
+# Create a route
+docker exec apisix-node1 curl http://127.0.0.1:9180/apisix/admin/routes/1 \
+  -H "X-API-KEY: edd1c9f034335f136f87ad84b625c8f1" \
+  -X PUT -d '{
+    "uri": "/api/*",
+    "upstream": {
+      "type": "roundrobin",
+      "nodes": {
+        "httpbin.org:80": 1
+      }
+    }
+  }'
+```
+
+**Via Host (if exposed):**
+```bash
+curl "http://localhost:9280/apisix/admin/routes" \
   -H "X-API-KEY: edd1c9f034335f136f87ad84b625c8f1"
 ```
+
+Admin API ports:
+- Node 1: 9280
+- Node 2: 9281
+- Node 3: 9282
 
 ## Monitoring & Healthcheck
 

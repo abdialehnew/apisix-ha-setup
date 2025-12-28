@@ -1,0 +1,115 @@
+groups:
+  - name: apisix_alerts
+    interval: 30s
+    rules:
+      # High error rate alert
+      - alert: HighErrorRate
+        expr: sum(rate(apisix_http_status{code=~"5.."}[5m])) > 10
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "High error rate detected in APISIX"
+          description: "Error rate is {{ $value }} errors/sec (threshold: 10/sec)"
+          
+      # High latency alert
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(apisix_http_latency_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High latency detected in APISIX"
+          description: "95th percentile latency is {{ $value }}s (threshold: 2s)"
+      
+      # Response time over 2 seconds
+      - alert: SlowResponseTime
+        expr: histogram_quantile(0.50, sum(rate(apisix_http_latency_bucket[2m])) by (le, route, service)) > 2
+        for: 2m
+        labels:
+          severity: warning
+          team: platform
+          type: performance
+        annotations:
+          summary: "Slow response time detected on {{ $labels.route }}"
+          description: "Median response time is {{ $value }}s on route {{ $labels.route }} (threshold: 2s)"
+          
+      # Individual request taking too long (p99)
+      - alert: VerySlowRequests
+        expr: histogram_quantile(0.99, rate(apisix_http_latency_bucket[5m])) > 2
+        for: 3m
+        labels:
+          severity: critical
+          team: platform
+          type: performance
+        annotations:
+          summary: "Very slow requests detected (p99 > 2s)"
+          description: "99th percentile latency is {{ $value }}s - some requests are taking too long"
+          
+      # APISIX node down
+      - alert: APINodeDown
+        expr: up{job="apisix"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "APISIX node is down"
+          description: "{{ $labels.instance }} is unreachable for more than 1 minute"
+          
+      # ETCD node down
+      - alert: ETCDNodeDown
+        expr: up{job="etcd"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "ETCD node is down"
+          description: "{{ $labels.instance }} is unreachable - cluster may be degraded"
+          
+      # High request rate (potential DDoS)
+      - alert: HighRequestRate
+        expr: sum(rate(apisix_http_status[1m])) > 1000
+        for: 5m
+        labels:
+          severity: warning
+          team: security
+        annotations:
+          summary: "Unusually high request rate"
+          description: "Request rate is {{ $value }} req/sec (threshold: 1000/sec)"
+          
+      # Low success rate
+      - alert: LowSuccessRate
+        expr: (sum(rate(apisix_http_status{code=~"2.."}[5m])) / sum(rate(apisix_http_status[5m]))) < 0.95
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Low success rate in APISIX"
+          description: "Success rate is {{ $value | humanizePercentage }} (threshold: 95%)"
+          
+      # Connection pool exhausted
+      - alert: HighActiveConnections
+        expr: apisix_nginx_http_current_connections > 5000
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High number of active connections"
+          description: "{{ $labels.instance }} has {{ $value }} active connections"
+
+      # Memory usage high
+      - alert: HighMemoryUsage
+        expr: (apisix_nginx_metric_errors_total / apisix_nginx_http_current_connections) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory pressure on {{ $labels.instance }}"

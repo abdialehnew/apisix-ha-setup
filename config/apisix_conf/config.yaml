@@ -14,6 +14,15 @@ apisix:
   
   port_admin: 9180
   
+  # Native Admin API Audit Logging
+  admin_audit_logs:
+    enabled: true
+    logging_plugin_name: file-logger
+    logging_plugin_config:
+      path: /usr/local/apisix/logs/admin_audit.log
+      max_size: 104857600  # 100MB
+      max_days: 30
+  
   router:
     http: radixtree_uri
     ssl: radixtree_sni
@@ -37,7 +46,7 @@ nginx_config:
   http:
     enable_access_log: true
     access_log: /usr/local/apisix/logs/access.log
-    access_log_format: '$remote_addr - $remote_user [$time_local] $http_host \"$request\" $status $body_bytes_sent $request_time \"$http_referer\" \"$http_user_agent\" $upstream_addr $upstream_status $upstream_response_time \"$upstream_scheme://$upstream_host$upstream_uri\"'
+    access_log_format: '$remote_addr - $remote_user [$time_local] $http_host \"$request\" $status $body_bytes_sent $request_time \"$http_referer\" \"$http_user_agent\" $upstream_addr $upstream_status $upstream_response_time \"$upstream_scheme://$upstream_host$upstream_uri\" request_id:$http_x_request_id'
     access_log_format_escape: default
     
     keepalive_timeout: 60s
@@ -66,15 +75,6 @@ nginx_config:
       balancer-ewma-last-touched-at: 10m
       plugin-limit-count-redis: 10m
       plugin-limit-count-local: 1m
-
-etcd:
-  host:
-    - "http://etcd1:2379"
-    - "http://etcd2:2379"
-    - "http://etcd3:2379"
-  prefix: /apisix
-  timeout: 30
-  startup_retry: 2
 
 plugins:
   - real-ip
@@ -165,10 +165,39 @@ plugin_attr:
     service_instance_name: APISIX Instance Name
     endpoint_addr: http://127.0.0.1:12800
 
+  # File logger untuk audit trail
+  file-logger:
+    path: /usr/local/apisix/logs/audit.log
+    max_size: 100
+    max_days: 30
+    
+  # HTTP logger untuk centralized logging
+  http-logger:
+    timeout: 3
+    retry_delay: 1
+    batch_max_size: 1000
+    buffer_duration: 60
+    inactive_timeout: 5
+    max_retry_count: 0
+    
+  # Request ID untuk tracing
+  request-id:
+    header_name: X-Request-Id
+    include_in_response: true
+    algorithm: uuid
+
 deployment:
   role: traditional
   role_traditional:
     config_provider: etcd
+  
+  etcd:
+    host:
+      - "http://etcd1:2379"
+      - "http://etcd2:2379"
+      - "http://etcd3:2379"
+    prefix: /apisix
+    timeout: 30
   
   admin:
     admin_key:
