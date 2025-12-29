@@ -76,8 +76,9 @@ apisix:
     ssl: radixtree_sni
 
   dns_resolver:
+    - 127.0.0.11
     - 8.8.8.8
-    - 114.114.114.114
+    - 1.1.1.1
   dns_resolver_valid: 30
 
 nginx_config:
