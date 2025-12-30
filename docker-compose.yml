@@ -15,6 +15,8 @@ services:
     restart: always
     networks:
       - apisix-network
+    ports:
+      - "2379:2379"    # Client API & Metrics
     volumes:
       - etcd1-data:/etcd-data
       - ./data/etcd1:/backup
@@ -41,6 +43,8 @@ services:
     restart: always
     networks:
       - apisix-network
+    ports:
+      - "2479:2379"    # Client API & Metrics
     volumes:
       - etcd2-data:/etcd-data
       - ./data/etcd2:/backup
@@ -67,6 +71,8 @@ services:
     restart: always
     networks:
       - apisix-network
+    ports:
+      - "2579:2379"    # Client API & Metrics
     volumes:
       - etcd3-data:/etcd-data
       - ./data/etcd3:/backup
